@@ -1,8 +1,10 @@
-import { ErrorResponse, SuccessResponse } from "../types";
+import { DocumentMatch, ErrorResponse, SuccessResponse } from "../types";
 import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { openai } from "../config/openai";
-import { supabaseConnection as supabase } from "../config/database";
+import { supabaseClient } from "../config/database";
+import { ChatCompletionMessageParam } from "openai/resources/chat";
+import { EMBEDDING_MODEL, GPT_MODEL } from "../constants";
 
 export const generateAndStoreEmbeddingsService = async (): Promise<
   SuccessResponse<{ message: string }> | ErrorResponse
@@ -22,13 +24,13 @@ export const generateAndStoreEmbeddingsService = async (): Promise<
       const cleanChunk = chunk.pageContent.replace(/\n/g, " ");
 
       const embeddingResponse = await openai.embeddings.create({
-        model: "text-embedding-3-small",
+        model: EMBEDDING_MODEL,
         input: cleanChunk,
       });
 
       const [{ embedding }] = embeddingResponse.data;
 
-      const { error } = await supabase.from("documents").insert({
+      const { error } = await supabaseClient.from("documents").insert({
         content: cleanChunk,
         embedding,
       });
@@ -61,26 +63,24 @@ export const handleQueryService = async (
     const input = query.replace(/\n/g, " ");
 
     const embeddingResponse = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: EMBEDDING_MODEL,
       input,
     });
 
     const [{ embedding }] = embeddingResponse.data;
 
-    const { data: documents, error } = await supabase.rpc("match_documents", {
-      query_embedding: embedding,
-      match_threshold: 0.5,
-      match_count: 10,
-    });
+    const { data: documents, error } = await supabaseClient.rpc(
+      "match_documents",
+      {
+        query_embedding: embedding,
+        match_threshold: 0.5,
+        match_count: 10,
+      }
+    );
 
     if (error) throw error;
 
     let contextText = "";
-
-    interface DocumentMatch {
-      content: string;
-      [key: string]: any;
-    }
 
     const docs = documents as DocumentMatch[];
 
@@ -88,10 +88,7 @@ export const handleQueryService = async (
       .map((document: DocumentMatch) => `${document.content.trim()}---\n`)
       .join("");
 
-    const messages: {
-      role: "system" | "user" | "assistant";
-      content: string;
-    }[] = [
+    const messages: ChatCompletionMessageParam[] = [
       {
         role: "system",
         content: `You are a representative that is very helpful when it comes to talking about InboxPurge, Only ever answer
@@ -105,7 +102,7 @@ export const handleQueryService = async (
 
     const completion = await openai.chat.completions.create({
       messages,
-      model: "gpt-5-nano",
+      model: GPT_MODEL,
       temperature: 0.8,
     });
 
