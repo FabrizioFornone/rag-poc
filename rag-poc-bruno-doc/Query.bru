@@ -1,0 +1,17 @@
+meta {
+  name: Query
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:3035/query
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "query": "What email providers does the InboxPurge extension work with?"
+  }
+}
