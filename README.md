@@ -1,10 +1,9 @@
 # Overview
 
-This was a simple demonstration of how to implement RAG apps:
-
-https://www.youtube.com/watch?v=FCoGU072Bmc
+Simple demonstration of how to implement RAG apps, forked from [TheFisola/rag-poc](https://github.com/TheFisola/rag-poc):
 
 ## How to Run Locally
 
-2. `npm i`
-3. `npm run start`
+1. `npm i`
+2. `npm run start`
+3. `npm run dev` for hot reload with nodemon
