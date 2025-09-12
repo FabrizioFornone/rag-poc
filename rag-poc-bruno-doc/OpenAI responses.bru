@@ -1,0 +1,27 @@
+meta {
+  name: OpenAI responses
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://api.openai.com/v1/responses
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{OPENAI_API_KEY}}
+}
+
+body:json {
+  {
+    "model": "gpt-5-nano",
+    "input": "write a haiku about ai",
+    "store": true
+  }
+}
