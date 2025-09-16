@@ -15,6 +15,18 @@ import * as yup from "yup";
  *   post:
  *     summary: Generate and store embeddings
  *     tags: [Embeddings]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - message
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "Hello, world!"
  *     responses:
  *       201:
  *         description: Embeddings generated and stored successfully.
